@@ -10,7 +10,7 @@ permissions:
   contents: write
 
 jobs:
-  build:
+  build-binaries:
     name: Build ${{ matrix.goos }}-${{ matrix.goarch }}
     runs-on: ubuntu-latest
     strategy:
@@ -98,35 +98,45 @@ jobs:
       - name: Upload packaged artifact
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ env.asset_name }}
+          name: codingprojects-mcp-${{ env.asset_name }}
           path: release/${{ env.asset_name }}.${{ env.archive_ext }}
 
   release:
-    name: Update latest release
+    name: Publish latest release
     runs-on: ubuntu-latest
-    needs: build
+    needs: [build-binaries]
 
     steps:
-      - name: Download artifacts
+      - name: Download all build artifacts
         uses: actions/download-artifact@v4
         with:
-          path: release-assets
+          pattern: codingprojects-mcp-*
           merge-multiple: true
+          path: ./dist
+
+      - name: Generate sha256 files
+        shell: bash
+        run: |
+          set -euo pipefail
+          ls -lah ./dist
+          cd ./dist
+          for f in *; do
+            if [ -f "$f" ] && [[ "$f" != *.sha256 ]]; then
+              sha256sum "$f" > "$f.sha256"
+            fi
+          done
+          ls -lah
 
       - name: Create or update latest release
         uses: ncipollo/release-action@v1
         with:
-          tag_name: latest
-          name: Latest
+          tag: latest
+          name: codingprojects-mcp (latest)
           body: |
-            Automated build for commit `${{ github.sha }}`.
-
-            This release is updated on every push to `main` or manual workflow run.
-          artifacts: release-assets/*
-          make_latest: true
-          generateReleaseNotes: false
+            codingprojects-mcp autobuild (multi-arch).
+            Binaries: linux amd64/386/armv7/arm64, darwin amd64/arm64, windows amd64/386/arm64.
+            The `latest` tag always points to the most recent build.
+          artifacts: "dist/*"
           allowUpdates: true
           replacesArtifacts: true
           artifactErrorsFailBuild: true
-          removeArtifacts: true
-          updateOnlyUnreleased: false
