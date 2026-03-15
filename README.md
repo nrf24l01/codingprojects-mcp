@@ -52,6 +52,32 @@ export CODINGPROJECTS_BASE_URL="https://codingprojects.ru"
 - For the tested AI task `2297` at `https://codingprojects.ru/insider/courses/153/steps/3626`, the paste service currently returns `"Задача не найдена в базе."`, so the server reports that as an error instead of pretending submission succeeded
 - Latest task results are parsed from the course step page when they are visible there
 
+## Installation
+
+Download a binary from the GitHub `Latest` release that matches your OS and CPU.
+
+Examples:
+
+- Linux x86_64: `codingprojects-mcp-linux-amd64.tar.gz`
+- Linux ARM64: `codingprojects-mcp-linux-arm64.tar.gz`
+- macOS Apple Silicon: `codingprojects-mcp-darwin-arm64.tar.gz`
+- macOS Intel: `codingprojects-mcp-darwin-amd64.tar.gz`
+- Windows x86_64: `codingprojects-mcp-windows-amd64.zip`
+
+Extract it and move the binary somewhere in your `PATH`, for example:
+
+```bash
+tar -xzf codingprojects-mcp-linux-amd64.tar.gz
+chmod +x codingprojects-mcp
+mv codingprojects-mcp ~/.local/bin/
+```
+
+You can also verify the download with the matching `.sha256` file from the release:
+
+```bash
+sha256sum -c codingprojects-mcp-linux-amd64.tar.gz.sha256
+```
+
 ## Run
 
 ```bash
@@ -70,20 +96,48 @@ go build -o codingprojects-mcp .
 go test ./...
 ```
 
-## Opencode example
+## Opencode setup
 
-```json
+Create or edit `~/.config/opencode/opencode.jsonc`:
+
+```jsonc
 {
   "$schema": "https://opencode.ai/config.json",
   "mcp": {
     "codingprojects-mcp": {
-	    "enabled": true,
-	    "type": "local",
-	    "command": ["codingprojects-mcp"],
-	    "environment": {
+      "enabled": true,
+      "type": "local",
+      "command": ["/home/your-user/.local/bin/codingprojects-mcp"],
+      "environment": {
+        "CODINGPROJECTS_EMAIL": "user@example.com",
+        "CODINGPROJECTS_PASSWORD": "secret",
+        "CODINGPROJECTS_BASE_URL": "https://codingprojects.ru"
+      }
+    }
+  }
+}
+```
+
+If the binary is already in your `PATH`, you can use just:
+
+```jsonc
+"command": ["codingprojects-mcp"]
+```
+
+Example opencode config:
+
+```jsonc
+{
+  "$schema": "https://opencode.ai/config.json",
+  "mcp": {
+    "codingprojects-mcp": {
+      "enabled": true,
+      "type": "local",
+      "command": ["codingprojects-mcp"],
+      "environment": {
         "CODINGPROJECTS_EMAIL": "user@example.com",
         "CODINGPROJECTS_PASSWORD": "secret"
-	    }
+      }
     }
   }
 }
