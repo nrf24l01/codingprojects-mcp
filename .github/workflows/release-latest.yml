@@ -107,26 +107,14 @@ jobs:
     needs: build
 
     steps:
-      - name: Check out source
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-
       - name: Download artifacts
         uses: actions/download-artifact@v4
         with:
           path: release-assets
           merge-multiple: true
 
-      - name: Move latest tag to current commit
-        shell: bash
-        run: |
-          set -euo pipefail
-          git tag -fa latest -m "Latest release" "$GITHUB_SHA"
-          git push origin refs/tags/latest --force
-
       - name: Create or update latest release
-        uses: softprops/action-gh-release@v2
+        uses: ncipollo/release-action@v1
         with:
           tag_name: latest
           name: Latest
@@ -134,6 +122,11 @@ jobs:
             Automated build for commit `${{ github.sha }}`.
 
             This release is updated on every push to `main` or manual workflow run.
-          files: release-assets/*
+          artifacts: release-assets/*
           make_latest: true
-          generate_release_notes: false
+          generateReleaseNotes: false
+          allowUpdates: true
+          replacesArtifacts: true
+          artifactErrorsFailBuild: true
+          removeArtifacts: true
+          updateOnlyUnreleased: false
